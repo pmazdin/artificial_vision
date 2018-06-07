@@ -33,5 +33,5 @@ $ source activate py35_pytorch
     ```
     
     
-https://github.com/davisking/dlib-models
-http://dlib.net/
+ - https://github.com/davisking/dlib-models
+ - http://dlib.net/
