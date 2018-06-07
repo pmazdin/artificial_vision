@@ -27,6 +27,7 @@ $ source activate py35_pytorch
 ```
     - then install the following package:
     ```
+    export PATH="$HOME/anaconda/bin:$PATH"
     conda install pytorch torchvision -c pytorch
     conda install -c menpo opencv3
     ```
