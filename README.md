@@ -31,3 +31,7 @@ $ source activate py35_pytorch
     conda install pytorch torchvision -c pytorch
     conda install -c menpo opencv3
     ```
+    
+    
+https://github.com/davisking/dlib-models
+http://dlib.net/
