@@ -11,3 +11,21 @@ Authorization via face detection in python using some Machine Learning approache
 
 ### using conda
 
+ - install anaconda https://conda.io/docs/user-guide/install/linux.html
+     - download the Anaconda installer for Linux and follow the steps
+     - 
+ - create a new conda environment `py35_pytorch`
+    - conda create -n py35_pytorch python=3.5 anaconda -y     
+``` 
+# To activate this environment, use:
+# > source activate py35_pytorch
+#
+# To deactivate an active environment, use:
+# > source deactivate
+$ source activate py35_pytorch
+```
+    - then install the following package:
+    ```
+    conda install pytorch torchvision -c pytorch
+    conda install -c menpo opencv3
+    ```
