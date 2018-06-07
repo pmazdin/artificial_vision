@@ -15,7 +15,8 @@ Authorization via face detection in python using some Machine Learning approache
      - download the Anaconda installer for Linux and follow the steps
      - 
  - create a new conda environment `py35_pytorch`
-    - conda create -n py35_pytorch python=3.5 anaconda -y     
+    - ```conda create -n py35_pytorch python=3.5 anaconda -y```
+    - activate/deactive the workspace:
 ``` 
 # To activate this environment, use:
 # > source activate py35_pytorch
