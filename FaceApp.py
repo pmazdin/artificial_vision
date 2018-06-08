@@ -4,6 +4,7 @@ import cv2
 import shutil
 import numpy as np
 from PIL import Image, ImageTk
+from deep_head_pose.code import headposedlib
 
 LARGE_FONT = ("Verdana", 12)
 NORMAL_FONT = ("Verdana", 10)
@@ -23,6 +24,10 @@ class FaceApp(tk.Tk):
         container.grid_rowconfigure(0, weight=1)
         container.grid_columnconfigure(0, weight=1)
         self.frames = {}
+
+        self.DHP = headposedlib.HeadPoseDLib("/home/jungr/workspace/NAV/development/face_authorization_py/deep_head_pose/hopenet_alpha2.pkl",
+                                             "/home/jungr/workspace/NAV/development/face_authorization_py/deep_head_pose/mmod_human_face_detector.dat")
+
 
         # add new pages to that list:
         #for F in (StartPage):
@@ -128,7 +133,7 @@ class StartPage(tk.Frame):
                 self.button_save['state'] = button_save_set
                 self.button_authorize['state'] = tk.NORMAL
 
-        self.label = tk.Label(self, text=write_text, foreground="red", font=("Helvetica", 10))
+        self.label = tk.Label(self, text=write_text, foreground="red", font=NORMAL_FONT)
         self.label.pack(side=tk.RIGHT)
 
     def take_photo(self, name, count):
@@ -139,7 +144,7 @@ class StartPage(tk.Frame):
         if self.label is not None:
             self.label.destroy()
 
-        self.label = tk.Label(self, text="  LOOK LEFT", foreground="red", font=("Helvetica", 10))
+        self.label = tk.Label(self, text="  LOOK LEFT", foreground="red", font=NORMAL_FONT)
         self.label.pack(side=tk.RIGHT)
 
         directory = ["train_left", "train_right", "train_straight"]
@@ -170,7 +175,7 @@ class StartPage(tk.Frame):
         self.button_load['state'] = tk.DISABLED
         self.button_save['state'] = tk.DISABLED
         self.button_authorize['state'] = tk.DISABLED
-        self.label = tk.Label(self, text="  LOOK STRAIGHT", foreground="red", font=("Helvetica", 10))
+        self.label = tk.Label(self, text="  LOOK STRAIGHT", foreground="red", font=NORMAL_FONT)
         self.label.pack(side=tk.RIGHT)
 
         directory = ["authorize_straight", "", "authorize_right", "authorize_left"]
@@ -213,6 +218,11 @@ class StartPage(tk.Frame):
         #np.savetxt(directory + '/right_pca.model', right_pca)
         #np.savetxt(directory + '/right_sift.model', right_sift)
 
+    def show_detections(self, head_pose_detections, frame):
+        for det in head_pose_detections:
+            cv2.rectangle(frame, (det.x_min, det.y_min), (det.x_max, det.y_max), (0, 255, 0), 1)
+            cv2.imshow('cropped', det.cropped_img)
+
     def show_video(self):
         if not self.cap.isOpened():
             print("ERROR: cannot open the camera")
@@ -222,17 +232,19 @@ class StartPage(tk.Frame):
         if flag is None:
             print("ERROR: cannot read the camera!")
         elif flag:
-            global last_img
-            global cur_img
-            last_img = img_new.copy()
-            cur_img = cv2.cvtColor(last_img, cv2.COLOR_BGR2RGB)
-            cur_img = cv2.resize(cur_img, (500, 370))
-            img = Image.fromarray(cur_img)
+            self.last_img = img_new.copy()
+            self.cur_img = cv2.cvtColor(self.last_img, cv2.COLOR_BGR2RGB)
+            self.cur_img = cv2.resize(self.cur_img, (180, 120))
+
+            head_pose_detections = self.controller.DHP.detect(self.cur_img)
+            self.show_detections(head_pose_detections, self.cur_img)
+
+            img = Image.fromarray(self.cur_img)
 
             imgtk = ImageTk.PhotoImage(image=img)
             self.lmain.imgtk = imgtk
             self.lmain.configure(image=imgtk)
-            self.lmain.after(10, self.show_video)
+            self.lmain.after(100, self.show_video)
 
 
 def main():
