@@ -1,0 +1,4 @@
+####### requirements.txt #######
+#
+scikit-learn
+git+git://github.com/jungr-ait/deepgaze@master#egg=deepgaze
