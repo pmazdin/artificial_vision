@@ -9,11 +9,11 @@ import os
 import shutil
 import matplotlib.pyplot as plt
 
-global last_frame
+global last_img
 global cap
 global label
 global frame
-global pic
+global cur_img
 
 
 
@@ -64,7 +64,7 @@ def check_model_exists(path):
 def change_label(text, done=False, button_load_set=False, button_save_set=False):
     global frame
     global label
-    global pic
+    global cur_img
     label.destroy()
     if not done:
         write_text = "   " + text
@@ -83,15 +83,15 @@ def change_label(text, done=False, button_load_set=False, button_save_set=False)
 
 
 def take_photo(name, count):
-    global pic
-    cv2.imwrite(name + "/" + str(count) + ".jpg",pic)
+    global cur_img
+    cv2.imwrite(name + "/" + str(count) + ".jpg", cur_img)
     
 
 
 def train():
     global frame
     global label
-    global pic
+    global cur_img
     print("Train chosen!")
     if label is not None:
         label.destroy()
@@ -126,7 +126,7 @@ def close():
 def authorize():
     global frame
     global label
-    global pic
+    global cur_img
     print("Authorization chosen!")
     if label is not None:
         label.destroy()
@@ -191,17 +191,17 @@ def show_video():
     if not cap.isOpened():
         print("ERROR: cannot open the camera")
 
-    flag, frame = cap.read()
+    flag, img_new = cap.read()
 
     if flag is None:
         print("ERROR: cannot read the camera!")
     elif flag:
-        global last_frame
-        global pic
-        last_frame = frame.copy()
-        pic = cv2.cvtColor(last_frame, cv2.COLOR_BGR2RGB)
-        pic = cv2.resize(pic, (500, 370))
-        img = Image.fromarray(pic)
+        global last_img
+        global cur_img
+        last_img = img_new.copy()
+        cur_img = cv2.cvtColor(last_img, cv2.COLOR_BGR2RGB)
+        cur_img = cv2.resize(cur_img, (500, 370))
+        img = Image.fromarray(cur_img)
 
         imgtk = ImageTk.PhotoImage(image=img)
         lmain.imgtk = imgtk
@@ -245,7 +245,7 @@ button_close = tk.Button(frame, text="Close", fg="black", command=close)
 button_close.pack(side=tk.RIGHT, padx=30)
 
 
-last_frame = np.zeros((280, 340, 3), dtype=np.uint8)
+last_img = np.zeros((280, 340, 3), dtype=np.uint8)
 cap = cv2.VideoCapture(0)
 lmain = tk.Label(master=root)
 lmain.pack(side = tk.BOTTOM)
