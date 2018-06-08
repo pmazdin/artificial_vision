@@ -37,9 +37,16 @@ $ source activate py35_pytorch
 ```
 sudo apt-get install virtualenv
 cd <into the repository>
-virtualenv -p `which python2` py_env2
-cd py_env2
-source bin/activate
+export PYTHONPATH=
+#Then create and activate the virtual environment:
+virtualenv py_env2
+. py_env2/bin/activate
+pip freeze
+pip list
+pip install numpy
+pip install matplotlib
+pip install opencv-python==3.4.0.14
+
 ```
 
 
