@@ -32,6 +32,19 @@ $ source activate py35_pytorch
     conda install -c menpo opencv3
     ```
     
-    
+### using pip environment:
+
+```
+sudo apt-get install virtualenv
+cd <into the repository>
+virtualenv -p `which python2` py_env2
+cd py_env2
+source bin/activate
+```
+
+
+## dependencies of deep-head-pose:
+
+download the models:
  - https://github.com/davisking/dlib-models
  - http://dlib.net/
