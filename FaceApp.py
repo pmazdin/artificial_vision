@@ -145,7 +145,7 @@ class StartPage(tk.Frame):
             print("ERROR: cannot open the camera")
 
         flag, img_new = self.cap.read()
-        print("capture...")
+        #print("capture...")
         if flag is None:
             print("ERROR: cannot read the camera!")
         elif flag:
