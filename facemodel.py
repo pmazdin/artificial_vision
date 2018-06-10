@@ -9,17 +9,16 @@ class FaceModel():
     def __init__(self):
         self.in_cam_img_queue = Queue.Queue()
         self.outqueue = Queue.Queue()
-
-        #self.cam_lock = threading.Lock()
         self.res_lock = threading.Lock()
 
         self.cam_img = None
         self.res_img = None
-        self.DHP = headposedlib.HeadPoseDLib("/home/jungr/workspace/NAV/development/face_authorization_py/deep_head_pose/hopenet_alpha2.pkl",
-                                             "/home/jungr/workspace/NAV/development/face_authorization_py/deep_head_pose/mmod_human_face_detector.dat")
 
         self.is_trained = False
         self.is_training = False
+
+        self.DHP = headposedlib.HeadPoseDLib("/home/jungr/workspace/NAV/development/face_authorization_py/deep_head_pose/hopenet_alpha2.pkl",
+                                             "/home/jungr/workspace/NAV/development/face_authorization_py/deep_head_pose/mmod_human_face_detector.dat")
 
     def set_cam_image(self, img):
         # only add new data if available: triggers working thread!
@@ -46,16 +45,18 @@ class FaceModel():
     def train_model_thread(self):
 
         cnt = 0
+
         self.is_training = True
-        while self.is_training and cnt < 100:
+        while self.is_training and cnt < 10:
 
             # check if new image is available:
             if not self.in_cam_img_queue.empty():
                 cam_img = self.in_cam_img_queue.get(block=False)
                 print("do training")
-                time.sleep(0.5)
+                #time.sleep(0.5)
                 cnt += 1
 
+                # TODO: is synchronizing between main and worker thread!
                 #head_pose_detections = self.DHP.detect(cam_img)
                 #self.show_detections(head_pose_detections, cam_img)
 

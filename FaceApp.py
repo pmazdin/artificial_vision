@@ -159,8 +159,8 @@ class StartPage(tk.Frame):
             self.label_cam_stream.configure(image=imgtk_cam)
 
             self.model.set_cam_image(self.img_cam)
-
             self.img_res = self.model.get_res_image()
+
             if self.img_res is None:
                 self.img_res = self.img_cam
 
