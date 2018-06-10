@@ -1,7 +1,11 @@
 ####### requirements.txt #######
 #
-numpy
-matplotlib
-opencv-python==3.4.0.14
-scikit-learn
 git+git://github.com/jungr-ait/deepgaze@master#egg=deepgaze
+numpy
+opencv-python
+matplotlib
+scikit-learn
+pillow
+tensorflow
+dlib
+

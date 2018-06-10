@@ -4,54 +4,7 @@ Authorization via face detection in python using some Machine Learning approache
 
 ## dependencies
 
- - https://github.com/natanielruiz/deep-head-pose 
- - https://github.com/mpatacchiola/deepgaze (python 2.7 with opencv 2.x !!!)
- - 
-
-
-### using conda
-
- - install anaconda https://conda.io/docs/user-guide/install/linux.html
-     - download the Anaconda installer for Linux and follow the steps
-     - export PATH="$HOME/anaconda/bin:$PATH"
-     -     
- - create a new conda environment `py35_pytorch`
-    - ```conda create -n py35_pytorch python=3.5 anaconda -y```
-    - activate/deactive the workspace:
-``` 
-# To activate this environment, use:
-# > source activate py35_pytorch
-#
-# To deactivate an active environment, use:
-# > source deactivate
-$ source activate py35_pytorch
 ```
-    - then install the following package:
-    ```
-    conda install pytorch torchvision -c pytorch
-    conda install -c menpo opencv3
-    ```
-    
-### using pip environment:
-
+source setup_env.sh
+python FaceApp.py
 ```
-sudo apt-get install virtualenv
-cd <into the repository>
-export PYTHONPATH=
-#Then create and activate the virtual environment:
-virtualenv py_env2
-. py_env2/bin/activate
-pip freeze
-pip list
-pip install numpy
-pip install matplotlib
-pip install opencv-python==3.4.0.14
-
-```
-
-
-## dependencies of deep-head-pose:
-
-download the models:
- - https://github.com/davisking/dlib-models
- - http://dlib.net/
