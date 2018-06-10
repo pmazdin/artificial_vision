@@ -4,7 +4,6 @@ import cv2
 import shutil
 import numpy as np
 from PIL import Image, ImageTk
-from deep_head_pose.code import headposedlib
 from facemodel import *
 LARGE_FONT = ("Verdana", 12)
 NORMAL_FONT = ("Verdana", 10)

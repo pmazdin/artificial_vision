@@ -1,7 +1,7 @@
 import cv2
 import utils
 
-from deep_head_pose.code import headposedlib
+from headposedetection import HeadPoseDetection
 from deepgaze.deepgaze.face_detection import HaarFaceDetector
 from gazecnnhpe import *
 from dlibfacedetector import *
@@ -38,7 +38,7 @@ class GazeDetector:
             # Drawing a rectangle around the face
             cv2.rectangle(image, (x_min, y_min), (x_max, y_max), [255, 0, 0])
             img_crop = image[y_min:y_max, x_min:x_max]
-            res = headposedlib.HeadPoseDetection()
+            res = HeadPoseDetection()
             res.confidence = 1
 
             crop_clr_img = clr_img[y_min:y_max, x_min:x_max]
@@ -69,7 +69,7 @@ class GazeDetector:
             # Drawing a rectangle around the face
             cv2.rectangle(image, (x_min, y_min), (x_max, y_max), [255, 0, 0])
             img_crop = image[y_min:y_max, x_min:x_max]
-            res = headposedlib.HeadPoseDetection()
+            res = HeadPoseDetection()
             res.confidence = 1
 
             crop_clr_img = clr_img[y_min:y_max, x_min:x_max]

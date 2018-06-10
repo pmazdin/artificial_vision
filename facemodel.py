@@ -5,9 +5,9 @@ import time
 import cv2
 import utils
 
-from deep_head_pose.code import headposedlib
 from gazedetector import *
 
+ENABLE_DHP = False
 
 class FaceModel():
     def __init__(self):
@@ -20,9 +20,6 @@ class FaceModel():
 
         self.is_trained = False
         self.is_training = False
-
-        self.DHP = headposedlib.HeadPoseDLib("/home/jungr/workspace/NAV/development/face_authorization_py/deep_head_pose/hopenet_alpha2.pkl",
-                                             "/home/jungr/workspace/NAV/development/face_authorization_py/deep_head_pose/mmod_human_face_detector.dat")
 
         self.GazeD = GazeDetector("/home/jungr/workspace/NAV/development/face_authorization_py/deepgaze/etc/xml/haarcascade_frontalface_alt.xml",
                                   "/home/jungr/workspace/NAV/development/face_authorization_py/deepgaze/etc/xml/haarcascade_profileface.xml")
@@ -62,8 +59,7 @@ class FaceModel():
                 #time.sleep(0.5)
                 cnt += 1
 
-                # TODO: DHP is synchronizing between main and worker thread!
-                head_pose_detections = self.detect_head_poses(cam_img, "GAZE")
+                head_pose_detections = self.detect_head_poses(cam_img, "GAZE2")
                 self.show_detections(head_pose_detections, cam_img)
                 self.res_lock.acquire()
                 try:
@@ -86,12 +82,12 @@ class FaceModel():
             cv2.rectangle(frame, (det.x_min, det.y_min), (det.x_max, det.y_max), (0, 255, 0), 1)
 
 
-    def detect_head_poses(self, cam_img, method="DHP"):
-        if method == "DHP":
-            print("using DHP")
-            return self.DHP.detect(cam_img)
-        elif method == "GAZE":
+    def detect_head_poses(self, cam_img, method="GAZE2"):
+        if method == "GAZE":
             print("using GAZE")
+            return self.GazeD.detect(cam_img)
+        elif method == "GAZE2":
+            print("using GAZE2")
             return self.GazeD.detect2(cam_img)
         else:
             print(method + " not supported!")
