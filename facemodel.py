@@ -7,7 +7,6 @@ import utils
 
 from gazedetector import *
 
-ENABLE_DHP = False
 
 class FaceModel():
     def __init__(self):
@@ -20,9 +19,11 @@ class FaceModel():
 
         self.is_trained = False
         self.is_training = False
+        self.training_thread = None
 
-        self.GazeD = GazeDetector("/home/jungr/workspace/NAV/development/face_authorization_py/deepgaze/etc/xml/haarcascade_frontalface_alt.xml",
-                                  "/home/jungr/workspace/NAV/development/face_authorization_py/deepgaze/etc/xml/haarcascade_profileface.xml")
+        self.GazeD = GazeDetector("./etc/tensorflow/head_pose/roll/cnn_cccdd_30k.tf",
+                                  "./etc/tensorflow/head_pose/pitch/cnn_cccdd_30k.tf",
+                                  "./etc/tensorflow/head_pose/yaw/cnn_cccdd_30k.tf")
     def set_cam_image(self, img):
         # only add new data if available: triggers working thread!
         if self.in_cam_img_queue.empty():
@@ -41,17 +42,14 @@ class FaceModel():
 
     def train_model(self):
         if not self.is_training:
-            threading.Thread(target=self.train_model_thread).start()
+            self.training_thread = threading.Thread(target=self.train_model_thread).start()
         else:
             print("is already training!")
 
     def train_model_thread(self):
-
         cnt = 0
-
         self.is_training = True
-        while self.is_training and cnt < 1000:
-
+        while self.is_training and cnt < 100:
             # check if new image is available:
             if not self.in_cam_img_queue.empty():
                 cam_img = self.in_cam_img_queue.get(block=False)
@@ -59,7 +57,7 @@ class FaceModel():
                 #time.sleep(0.5)
                 cnt += 1
 
-                head_pose_detections = self.detect_head_poses(cam_img, "GAZE2")
+                head_pose_detections = self.detect_head_poses(cam_img)
                 self.show_detections(head_pose_detections, cam_img)
                 self.res_lock.acquire()
                 try:
@@ -72,8 +70,9 @@ class FaceModel():
         self.is_training = False
         print("worker is done...")
 
-
-
+    def stop_thread(self):
+        self.is_training = False
+        self.training_thread.join()
 
     def show_detections(self, head_pose_detections, frame):
         for det in head_pose_detections:
@@ -82,14 +81,6 @@ class FaceModel():
             cv2.rectangle(frame, (det.x_min, det.y_min), (det.x_max, det.y_max), (0, 255, 0), 1)
 
 
-    def detect_head_poses(self, cam_img, method="GAZE2"):
-        if method == "GAZE":
-            print("using GAZE")
-            return self.GazeD.detect(cam_img)
-        elif method == "GAZE2":
-            print("using GAZE2")
-            return self.GazeD.detect2(cam_img)
-        else:
-            print(method + " not supported!")
+    def detect_head_poses(self, cam_img):
+        return self.GazeD.detect(cam_img)
 
-        return None

@@ -88,7 +88,7 @@ class StartPage(tk.Frame):
         self.button_save_model = tk.Button(self, text="Save Model", fg="yellow", command=self.save_model, state=tk.DISABLED)
         self.button_save_model.pack(side=tk.LEFT, padx=5)
 
-        self.button_close = tk.Button(self, text="Close", fg="black", command=controller.quit)
+        self.button_close = tk.Button(self, text="Close", fg="black", command=self.quit)
         self.button_close.pack(side=tk.LEFT, padx=5)
 
 
@@ -111,8 +111,6 @@ class StartPage(tk.Frame):
         self.model = FaceModel()
 
         self.show_video()
-
-
 
 
     def save_image(self, name, count):
@@ -170,6 +168,10 @@ class StartPage(tk.Frame):
 
             self.label_cam_stream.after(50, self.show_video)
 
+    def quit(self):
+        if self.model.is_training:
+            self.model.stop_thread()
+        self.controller.quit()
 
 def main():
     app = FaceApp()
