@@ -2,7 +2,6 @@ import cv2
 import utils
 
 from headposedetection import HeadPoseDetection
-from deepgaze.deepgaze.face_detection import HaarFaceDetector
 from gazecnnhpe import *
 from dlibfacedetector import *
 

@@ -1,2 +1,4 @@
 *.jpg
 .idea
+my_py_env
+*.pyc

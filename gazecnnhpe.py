@@ -1,7 +1,7 @@
 import os
 import tensorflow as tf
 import cv2
-from deepgaze.deepgaze.head_pose_estimation import CnnHeadPoseEstimator
+from deepgaze.head_pose_estimation import CnnHeadPoseEstimator
 
 
 class GazeCnnHPE:
