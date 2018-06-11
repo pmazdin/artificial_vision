@@ -114,9 +114,6 @@ class StartPage(tk.Frame):
         self.show_video()
 
 
-    def save_image(self, name, count):
-        cv2.imwrite(name + "/" + str(count) + ".jpg", self.cur_img)
-
     def train(self):
         print("Train chosen!")
         self.button_save_model['state'] = tk.NORMAL

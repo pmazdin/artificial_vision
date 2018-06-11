@@ -4,6 +4,8 @@ import threading
 import time
 import cv2
 import utils
+import os
+import shutil
 
 from gazedetector import *
 
@@ -56,17 +58,15 @@ class FaceModel():
         else:
             print("is already training!")
 
-    def train_model_thread(self, num_image_per_side = 15, save_images=False):
+    def train_model_thread(self, num_image_per_side = 15, save_images=True):
         self.is_training = True
 
         states = ["straight", "left", "right"]
         state_angles = { "straight" : [-10, 10], "left" : [-90, -35], "right" : [35, 90] }
         img_buffer = { "straight" : [], "left" : [], "right" : [] }
 
-
         while self.is_training:
             # check if new image is available:
-
 
             for state in states :
                 cnt = 0
@@ -105,8 +105,19 @@ class FaceModel():
             self.is_training = False
 
             if save_images:
-                print("saving iamges: ")
+                cwd = os.getcwd()
+                print("saving iamges: " + str(cwd))
 
+                for state in states:
+                    i = 0
+                    directory = "training_images/" + state
+                    if os.path.exists(directory):
+                        shutil.rmtree(directory)
+                    os.makedirs(directory)
+
+                    for img in img_buffer[state]:
+                        cv2.imwrite(directory + "/" + str(i) + ".jpg", img)
+                        i += 1
 
 
             # do the model training
@@ -130,3 +141,8 @@ class FaceModel():
     def detect_head_poses(self, cam_img):
         return self.GazeD.detect(cam_img)
 
+    def save_model(self, filename):
+        return
+
+    def load_model(self, filename):
+        return
