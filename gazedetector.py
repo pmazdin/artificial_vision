@@ -34,7 +34,7 @@ class GazeDetector:
 
             crop_clr_img = clr_img[y_min:y_max, x_min:x_max]
             # print("bb: " + str(x_min) + "," + str(x_max) + ";" + str(y_min) + "," + str(y_max))
-            crop_clr_img = cv2.resize(crop_clr_img, (128, 128))
+            crop_clr_img = cv2.resize(crop_clr_img, (256, 256))
             # print(str(crop_clr_img.shape))
 
             [res.roll, res.pitch, res.yaw] = self.hpe.detect(crop_clr_img)
