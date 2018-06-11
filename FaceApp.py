@@ -17,8 +17,8 @@ SMALL_FONT = ("Verdana", 8)
 class FaceApp(tk.Tk):
     def __init__(self, *args, **kwargs):
         self.root = tk.Tk.__init__(self, *args, **kwargs)
-        self.img_w = 480
-        self.img_h = 360
+        self.img_w = 550
+        self.img_h = 380
         self.geometry(str(self.img_w + 60) + "x" + str(self.img_h*2 + 120) + "+300+300")
         tk.Tk.wm_title(self, "FaceApp")
         container = tk.Frame(self)
