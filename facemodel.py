@@ -48,6 +48,9 @@ class FaceModel():
         print("number of persons: " + str(len(self.lfw_dataset.target_names)))
 
         self.trained_ids = dict()
+        self.classifier = None
+        self.pca = None
+        self.target_names = []
 
 
     def set_cam_image(self, img):
@@ -89,21 +92,22 @@ class FaceModel():
             print("is already training!")
 
 
-    def train_model_thread(self, num_image_per_side = 15, save_images=True):
+    def train_model_thread(self, num_image_per_side = 15, save_images=True, load_images=True):
         self.is_training = True
 
         states = ["straight", "left", "right"]
         state_angles = { "straight" : [-10, 10], "left" : [-90, -35], "right" : [35, 90] }
-        img_buffer = { "straight" : [], "left" : [], "right" : [] }
 
         while self.is_training:
             # check if new image is available:
 
-            img_buffer = self.capture_images(states, state_angles, num_image_per_side)
-
+            if load_images:
+                img_buffer = self.load_images(states, num_image_per_side)
+            else:
+                img_buffer = self.capture_images(states, state_angles, num_image_per_side)
 
             self.training_info = "model training ..."
-            if save_images:
+            if save_images and not load_images:
                 self.store_images(states, img_buffer)
 
 
@@ -169,11 +173,7 @@ class FaceModel():
             self.trained_ids[str(state)] = y_len + t
 
             for img in img_buffer[state]:
-                resized_img = cv2.resize(img, (self.training_data_dim[0], self.training_data_dim[1]))
-                np_face = np.asarray(resized_img.flatten(), dtype=np.float32)
-                np_face /= 255.0  # scale uint8 coded colors from 0.0->1.0
-                np_face = np_face.reshape((1, len(np_face)))  ## make a row vector
-
+                np_face = self.get_np_face(img)
                 X = np.append(X, np_face, axis=0)  ## append to the image vector
                 y = np.append(y, y_len + t)  ## append to the label vector
             t += 1
@@ -190,16 +190,19 @@ class FaceModel():
 
         # apply pca and find eigenvectors and eigenvalues
         feature_dim = 200
-        pca = PCA(n_components=feature_dim, whiten=True).fit(X_train)
-        X_train_pca = pca.transform(X_train)
-        X_test_pca = pca.transform(X_test)
-        c = svm.SVC()
+        self.pca = PCA(n_components=feature_dim, whiten=True).fit(X_train)
+        X_train_pca = self.pca.transform(X_train)
+        X_test_pca = self.pca.transform(X_test)
+        self.classifier = svm.SVC()
 
-        c.fit(X_train_pca, y_train)
-        y_pred = c.predict(X_test_pca)
+        self.classifier.fit(X_train_pca, y_train)
+        y_pred = self.classifier.predict(X_test_pca)
         print(classification_report(y_test, y_pred, target_names=target_names))
         i = 10
         print("Predicted:", target_names[y_pred[i]], " - Correct:", target_names[y_test[i]])
+
+        self.target_names = target_names.copy()
+        self.is_trained = True
 
 
     def store_images(self, states, img_buffer):
@@ -217,6 +220,21 @@ class FaceModel():
                 cv2.imwrite(directory + "/" + str(i) + ".jpg", img)
                 i += 1
 
+    def load_images(self, states, num_image_per_side = 15):
+        cwd = os.getcwd()
+        print("loading images from: " + str(cwd))
+        img_buffer = dict()
+        for state in states:
+            directory = "training_images/" + state
+            img_buffer[state] = []
+            if not os.path.exists(directory):
+                print("Error path does not exist!: " + directory)
+            else:
+                for i in range(num_image_per_side):
+                    img_buffer[state].append(cv2.imread(directory + "/" + str(i) + ".jpg"))
+                    i += 1
+
+        return img_buffer
 
     def stop_thread(self):
         if self.is_training:
@@ -253,10 +271,46 @@ class FaceModel():
         else:
             print("is already authorizing!")
 
+    def get_np_face(self, img):
+        [w, h] = self.training_data_dim
+        img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+        resized_img = cv2.resize(img, (w, h))
+        np_face = utils.cv_image_to_numpyarray(resized_img)
+        return np_face
+
     def authorize_thread(self):
         self.is_authorizing = True
 
         while(self.is_authorizing):
             # llooooooop
             print("looping...")
+
+            if not self.in_cam_img_queue.empty():
+                cam_img = self.in_cam_img_queue.get(block=False)
+
+                head_pose_detections = self.detect_head_poses(cam_img)
+                self.show_detections(head_pose_detections, cam_img)
+
+                if len(head_pose_detections):
+                    det = head_pose_detections[0]
+                    img_cropped = det.cropped_clr_img.copy()
+
+                    if self.is_trained:
+                        [w, h] = self.training_data_dim
+                        np_face = self.get_np_face(img_cropped)
+
+                        faces = np.zeros((1, h*w), dtype=np.float32)
+                        faces[0,:] = np_face
+
+                        X_test_pca = self.pca.transform(faces)
+                        y_pred = self.classifier.predict(X_test_pca)
+
+                        print(y_pred.shape)
+                        if(y_pred[0] < len(self.target_names)):
+                            print("Predicted:", y_pred[0]) #, " - Correct:", self.target_names[self.trained_ids["Straight"]])
+                        else:
+                            print("failure...")
+
             time.sleep(0.2)
+
+

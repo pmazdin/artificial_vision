@@ -39,6 +39,7 @@ class GazeDetector:
 
             [res.roll, res.pitch, res.yaw] = self.hpe.detect(crop_clr_img)
             res.cropped_img = img_crop.copy()
+            res.cropped_clr_img =  crop_clr_img.copy()
             res.x_min = x_min
             res.y_min = y_min
             res.x_max = x_max
