@@ -4,7 +4,7 @@ sudo apt-get install virtualenv
 
 export PYTHONPATH=
 #Then create and activate the virtual environment:
-virtualenv ${ENV_NAME}
+virtualenv -p `which python2` ${ENV_NAME}
 . ${ENV_NAME}/bin/activate
 # install the package (-e will keep the installed package up to date)
 pip install -r requirements.txt
