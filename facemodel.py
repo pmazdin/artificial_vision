@@ -81,11 +81,11 @@ class FaceModel():
         if self.is_authorizing:
             return self.authorizing_info
 
-        txt = "no info..."
+        txt = "Wait for info"
         if self.is_trained:
-            txt = "model is trained"
+            txt = "Model is trained"
         if self.is_authorized:
-            txt = "authorized"
+            txt = "Authorized"
         return txt
 
 
@@ -96,7 +96,7 @@ class FaceModel():
             print("is already training!")
 
 
-    def train_model_thread(self, num_image_per_side = 50, save_images=True, load_images=True):
+    def train_model_thread(self, num_image_per_side = 50, save_images=True, load_images=False):
         self.is_training = True
 
         states = ["straight", "left", "right"]
@@ -110,13 +110,13 @@ class FaceModel():
             else:
                 img_buffer = self.capture_images(states, state_angles, num_image_per_side)
 
-            self.training_info = "model training ..."
+            self.training_info = "IN PROGRESS"
             if save_images and not load_images:
                 self.store_images(states, img_buffer)
 
 
             self.model_training(["straight"], img_buffer)
-            self.training_info = "model training DONE!"
+            self.training_info = "Training DONE!"
             self.is_training = False
 
         self.is_trained = True
@@ -152,8 +152,9 @@ class FaceModel():
                         det = head_pose_detections[0]
                         cur_angle = det.yaw
                         img_cropped = det.cropped_clr_img
-                    self.training_info = state + ": " + str(cnt) + "; expected angles: " + str(min_angle) + "," + str(
-                        max_angle) + "\n cur angle: " + str(cur_angle)
+                    self.training_info = "LOOK " + state
+                        # state + ": " + str(cnt) + "; expected angles: " + str(min_angle) + "," + str(
+                        # max_angle) + "\n cur angle: " + str(cur_angle)
 
                     if cur_angle > min_angle and cur_angle < max_angle and img_cropped is not None:
                         cnt += 1
@@ -332,7 +333,7 @@ class FaceModel():
 
         RATIO_THRESHOLD = 0.3  # blink detection
         NB_FRAMES = 3  # number of frames under threshold
-        REQUIRED_NB_BLINKS = 3  # number of detected blinks required
+        REQUIRED_NB_BLINKS = 2  # number of detected blinks required
 
         cnt = 0  # frame counter
         total_nb = 0  # total number of detected blinks
