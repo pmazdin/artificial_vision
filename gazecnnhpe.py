@@ -22,7 +22,7 @@ class GazeCnnHPE:
         roll = self.HPE.return_roll(image)  # Evaluate the roll angle using a CNN
         pitch = self.HPE.return_pitch(image)  # Evaluate the pitch angle using a CNN
         yaw = self.HPE.return_yaw(image)  # Evaluate the yaw angle using a CNN
-        print("Estimated [roll, pitch, yaw] ..... [" + str(roll[0,0,0]) + "," + str(pitch[0,0,0]) + "," + str(yaw[0,0,0])  + "]")
+        #print("Estimated [roll, pitch, yaw] ..... [" + str(roll[0,0,0]) + "," + str(pitch[0,0,0]) + "," + str(yaw[0,0,0])  + "]")
 
         return [roll, pitch, yaw]
 

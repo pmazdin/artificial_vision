@@ -10,3 +10,4 @@ tensorflow
 dlib
 scipy
 imutils
+opencv-contrib-python
