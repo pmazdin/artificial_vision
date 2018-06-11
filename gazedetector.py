@@ -33,6 +33,9 @@ class GazeDetector:
             res.confidence = 1
 
             crop_clr_img = clr_img[y_min:y_max, x_min:x_max]
+            if crop_clr_img.shape[0] == 0 or crop_clr_img.shape[1] == 0:
+                continue
+
             # print("bb: " + str(x_min) + "," + str(x_max) + ";" + str(y_min) + "," + str(y_max))
             crop_clr_img = cv2.resize(crop_clr_img, (256, 256))
             # print(str(crop_clr_img.shape))
