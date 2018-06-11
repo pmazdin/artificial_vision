@@ -375,21 +375,7 @@ class FaceModel():
                     if total_nb > REQUIRED_NB_BLINKS:
                         print("WUHUUU enough blinks")
 
-                    # if self.is_trained:
-                    #     [w, h] = self.training_data_dim
-                    #     np_face = self.get_np_face(img_cropped)
-                    #
-                    #     faces = np.zeros((1, h*w), dtype=np.float32)
-                    #     faces[0,:] = np_face
-                    #
-                    #     X_test_pca = self.pca.transform(faces)
-                    #     y_pred = self.classifier.predict(X_test_pca)
-                    #
-                    #     print(y_pred.shape)
-                    #     if(y_pred[0] < len(self.target_names)):
-                    #         print("Predicted:", y_pred[0]) #, " - Correct:", self.target_names[self.trained_ids["Straight"]])
-                    #     else:
-                    #         print("failure...")
+
                     if self.is_trained:
                         [w, h] = self.training_data_dim
                         np_face = self.get_np_face(img_cropped)
