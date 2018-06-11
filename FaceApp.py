@@ -101,10 +101,12 @@ class StartPage(tk.Frame):
         self.button_save_model['state'] = tk.NORMAL
 
         self.model.train_model()
+        self.button_authorize['state'] = tk.NORMAL
 
 
     def authorize(self):
         print("Authorization chosen!")
+        self.model.authorize()
 
 
     def load_model(self):

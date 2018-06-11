@@ -31,6 +31,11 @@ class FaceModel():
         self.training_thread = None
         self.training_info = ""
 
+        self.is_authorized = False
+        self.is_authorizing = False
+        self.authorizing_thread = None
+        self.authorizing_info = ""
+
         self.GazeD = GazeDetector("./etc/tensorflow/head_pose/roll/cnn_cccdd_30k.tf",
                                   "./etc/tensorflow/head_pose/pitch/cnn_cccdd_30k.tf",
                                   "./etc/tensorflow/head_pose/yaw/cnn_cccdd_30k.tf")
@@ -66,10 +71,15 @@ class FaceModel():
         if self.is_training:
             return self.training_info
 
-        if self.is_trained:
-            return "model is trained"
+        if self.is_authorizing:
+            return self.authorizing_info
 
-        return "no info..."
+        txt = "no info..."
+        if self.is_trained:
+            txt = "model is trained"
+        if self.is_authorized:
+            txt = "authorized"
+        return txt
 
 
     def train_model(self):
@@ -209,8 +219,12 @@ class FaceModel():
 
 
     def stop_thread(self):
-        self.is_training = False
-        self.training_thread.join()
+        if self.is_training:
+            self.is_training = False
+            self.training_thread.join()
+        if self.is_authorizing:
+            self.is_authorizing = False
+            self.authorizing_thread.join()
 
 
     def show_detections(self, head_pose_detections, frame):
@@ -232,3 +246,17 @@ class FaceModel():
     def load_model(self, filename):
         print("loading model: " + filename)
         return False
+
+    def authorize(self):
+        if not self.is_authorizing and self.is_trained:
+            self.authorizing_thread = threading.Thread(target=self.authorize_thread).start()
+        else:
+            print("is already authorizing!")
+
+    def authorize_thread(self):
+        self.is_authorizing = True
+
+        while(self.is_authorizing):
+            # llooooooop
+            print("looping...")
+            time.sleep(0.2)
