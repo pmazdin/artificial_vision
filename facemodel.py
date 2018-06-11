@@ -8,6 +8,7 @@ import utils
 import os
 import shutil
 import dlib
+import pickle
 from gazedetector import *
 
 from sklearn import svm
@@ -281,13 +282,22 @@ class FaceModel():
 
 
     def save_model(self, filename):
-        print("saving model: " + filename)
-        return False
+        # print("saving model: " + filename)
+        try:
+            pickle.dump(self.classifier, open(filename, 'wb'))
+            return True
+        except Exception:
+            return False
 
 
     def load_model(self, filename):
-        print("loading model: " + filename)
-        return False
+        # print("loading model: " + filename)
+
+        try:
+            self.classifier = pickle.load(open(filename, 'rb'))
+            return True
+        except Exception:
+            return False
 
     def authorize(self):
         if not self.is_authorizing and self.is_trained:
@@ -371,7 +381,7 @@ class FaceModel():
                         if cnt >= NB_FRAMES:
                             total_nb += 1
                         cnt = 0  # reset the counter
-                    print(total_nb)
+
                     if total_nb > REQUIRED_NB_BLINKS:
                         print("WUHUUU enough blinks")
 
