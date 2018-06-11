@@ -42,23 +42,23 @@ class FaceApp(tk.Tk):
         frame = self.frames[cont]
         frame.tkraise()
 
-    def donothing(self):
+    def do_nothing(self):
         filewin = tk.Toplevel(self)
         button = tk.Button(filewin, text="Do nothing button")
         button.pack()
         print("do nothing")
 
-    def onOpen(self):
+    def on_open(self):
         # https://stackoverflow.com/questions/16429716/opening-file-tkinter
         ftypes = [('csv files', '*.csv')]
         dlg = tk.filedialog.Open(self, filetypes = ftypes)
         fl = dlg.show()
 
         if fl != '':
-            text = self.readFile(fl)
+            text = self.read_file(fl)
             self.txt.insert(tk.END, text)
 
-    def readFile(self, filename):
+    def read_file(self, filename):
         f = open(filename, "r")
         text = f.read()
         return text
