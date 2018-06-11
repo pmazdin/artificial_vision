@@ -7,6 +7,7 @@ import cv2
 import utils
 import os
 import shutil
+import dlib
 from gazedetector import *
 
 from sklearn import svm
@@ -16,6 +17,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
 from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
+from scipy.spatial import distance as dist
+from imutils import face_utils
 
 class FaceModel():
     def __init__(self):
@@ -278,16 +281,36 @@ class FaceModel():
         np_face = utils.cv_image_to_numpyarray(resized_img)
         return np_face
 
+    def calculate_ratio(self, eye):
+
+        vert_one = dist.euclidean(eye[1], eye[5])  # vertical eye landmarks
+        vert_two = dist.euclidean(eye[2], eye[4])
+        horizontal = dist.euclidean(eye[0], eye[3])  # horizontal eye landmark
+        ratio = (vert_one + vert_two) / (2.0 * horizontal)
+
+        return ratio
+
+
     def authorize_thread(self):
         self.is_authorizing = True
 
+        RATIO_THRESHOLD = 0.3  # blink detection
+        NB_FRAMES = 3  # number of frames under threshold
+        REQUIRED_NB_BLINKS = 3  # number of detected blinks required
+
+        cnt = 0  # frame counter
+        total_nb = 0  # total number of detected blinks
+
+        predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")  # dlib's face detector
+
+        (left_start, left_end) = face_utils.FACIAL_LANDMARKS_IDXS["left_eye"]  # load features
+        (right_start, right_end) = face_utils.FACIAL_LANDMARKS_IDXS["right_eye"]
+
         while(self.is_authorizing):
-            # llooooooop
-            print("looping...")
 
             if not self.in_cam_img_queue.empty():
                 cam_img = self.in_cam_img_queue.get(block=False)
-
+                print("looping...")
                 head_pose_detections = self.detect_head_poses(cam_img)
                 self.show_detections(head_pose_detections, cam_img)
 
@@ -295,21 +318,44 @@ class FaceModel():
                     det = head_pose_detections[0]
                     img_cropped = det.cropped_clr_img.copy()
 
-                    if self.is_trained:
-                        [w, h] = self.training_data_dim
-                        np_face = self.get_np_face(img_cropped)
+                    face = dlib.rectangle(det.x_min, det.y_min, det.x_max, det.y_max)
 
-                        faces = np.zeros((1, h*w), dtype=np.float32)
-                        faces[0,:] = np_face
+                    shape = predictor(cam_img, face)
+                    shape = face_utils.shape_to_np(shape)  # convert the landmark to np array
 
-                        X_test_pca = self.pca.transform(faces)
-                        y_pred = self.classifier.predict(X_test_pca)
+                    left_eye = shape[left_start:left_end]  # left eye coordinates
+                    left_ratio = self.calculate_ratio(left_eye)
 
-                        print(y_pred.shape)
-                        if(y_pred[0] < len(self.target_names)):
-                            print("Predicted:", y_pred[0]) #, " - Correct:", self.target_names[self.trained_ids["Straight"]])
-                        else:
-                            print("failure...")
+                    right_eye = shape[right_start:right_end]  # right eye coordinates
+                    right_ratio = self.calculate_ratio(right_eye)
+
+                    total_ratio = (left_ratio + right_ratio) / 2.0  # avg ratio
+
+                    if total_ratio < RATIO_THRESHOLD:
+                        cnt += 1
+                    else:
+                        if cnt >= NB_FRAMES:
+                            total_nb += 1
+                        cnt = 0  # reset the counter
+                    print(total_nb)
+                    if total_nb > REQUIRED_NB_BLINKS:
+                        print("WUHUUU enough blinks")
+
+                    # if self.is_trained:
+                    #     [w, h] = self.training_data_dim
+                    #     np_face = self.get_np_face(img_cropped)
+                    #
+                    #     faces = np.zeros((1, h*w), dtype=np.float32)
+                    #     faces[0,:] = np_face
+                    #
+                    #     X_test_pca = self.pca.transform(faces)
+                    #     y_pred = self.classifier.predict(X_test_pca)
+                    #
+                    #     print(y_pred.shape)
+                    #     if(y_pred[0] < len(self.target_names)):
+                    #         print("Predicted:", y_pred[0]) #, " - Correct:", self.target_names[self.trained_ids["Straight"]])
+                    #     else:
+                    #         print("failure...")
 
             time.sleep(0.2)
 
