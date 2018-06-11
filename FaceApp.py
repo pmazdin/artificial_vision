@@ -18,7 +18,7 @@ SMALL_FONT = ("Verdana", 8)
 class FaceApp(tk.Tk):
     def __init__(self, *args, **kwargs):
         self.root = tk.Tk.__init__(self, *args, **kwargs)
-        self.img_w = 550
+        self.img_w = 580
         self.img_h = 380
         self.geometry(str(self.img_w + 60) + "x" + str(self.img_h*2 + 120) + "+300+300")
         tk.Tk.wm_title(self, "FaceApp")
@@ -114,10 +114,10 @@ class StartPage(tk.Frame):
         print("Load model chosen!")
         ftypes = [('model files', '*.model')]
         dlg = tkFileDialog.Open(self.controller, filetypes = ftypes)
-        fl = dlg.show()
+        filename = dlg.show()
 
-        if fl != '':
-            if self.model.load_model(fl):
+        if filename != '' and filename is not None:
+            if self.model.load_model(filename):
                 # self.button_load_model['state'] = tk.DISABLED
                 self.button_save_model['state'] = tk.NORMAL
                 self.button_authorize['state'] = tk.NORMAL
@@ -126,10 +126,10 @@ class StartPage(tk.Frame):
         print("save model chosen!")
         ftypes = [('model files', '*.model')]
         cwd = os.getcwd()
-        fl = tkFileDialog.asksaveasfilename(initialdir=cwd, title="Select file", filetypes=ftypes)
-        if fl != '':
-            if self.model.save_model(fl) :
-                self.button_load_model['state'] = tk.DISABLED
+        filename = tkFileDialog.asksaveasfilename(initialdir=cwd, title="Select file", filetypes=ftypes)
+        if filename != '' and filename is not None:
+            if self.model.save_model(filename) :
+                self.button_load_model['state'] = tk.NORMAL
                 self.button_authorize['state'] = tk.NORMAL
 
     def show_video(self):
