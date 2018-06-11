@@ -64,11 +64,11 @@ class StartPage(tk.Frame):
         self.button_authorize = tk.Button(self, text="Authorize", fg="blue", command=self.authorize, state=tk.DISABLED)
         self.button_authorize.pack(side=tk.LEFT, padx=5)
 
-        self.button_load_model = tk.Button(self, text="Load Model", fg="green", command=self.load_model)
-        self.button_load_model.pack(side=tk.LEFT)
+        #self.button_load_model = tk.Button(self, text="Load Model", fg="green", command=self.load_model)
+        #self.button_load_model.pack(side=tk.LEFT)
 
-        self.button_save_model = tk.Button(self, text="Save Model", fg="yellow", command=self.save_model, state=tk.DISABLED)
-        self.button_save_model.pack(side=tk.LEFT, padx=5)
+        #self.button_save_model = tk.Button(self, text="Save Model", fg="yellow", command=self.save_model, state=tk.DISABLED)
+        #self.button_save_model.pack(side=tk.LEFT, padx=5)
 
         self.button_close = tk.Button(self, text="Close", fg="black", command=self.quit)
         self.button_close.pack(side=tk.LEFT, padx=5)
