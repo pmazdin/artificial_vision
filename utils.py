@@ -38,15 +38,13 @@ def draw_axis(img, yaw, pitch, roll, tdx=None, tdy=None, size = 100):
 
 def cv_image_to_numpyarray(img):
     np_img = np.asarray(img.flatten(), dtype=np.float32)
-    np_img /= 255.0  # scale uint8 coded colors from 0.0->1.0
+    #np_img /= 255.0  # scale uint8 coded colors from 0.0->1.0
     #print(np_img.shape)
     np_img = np_img.reshape((1, len(np_img)))  ## make a row vector
     #print(np_img.shape)
     return np_img
 
 def numpyarray_image_to_cv(np_img, w, h):
-    print(np_img.shape)
+    #print(np_img.shape)
     np_img = np_img.reshape(h, w,)
-    cv_img = cv2.Mat(np_img)
-    #print(str(cv_img.shape))
-    return cv_img
+    return np_img

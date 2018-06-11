@@ -95,7 +95,7 @@ class FaceModel():
             print("is already training!")
 
 
-    def train_model_thread(self, num_image_per_side = 15, save_images=True, load_images=True):
+    def train_model_thread(self, num_image_per_side = 50, save_images=True, load_images=True):
         self.is_training = True
 
         states = ["straight", "left", "right"]
@@ -150,7 +150,7 @@ class FaceModel():
                     if len(head_pose_detections):
                         det = head_pose_detections[0]
                         cur_angle = det.yaw
-                        img_cropped = det.cropped_img
+                        img_cropped = det.cropped_clr_img
                     self.training_info = state + ": " + str(cnt) + "; expected angles: " + str(min_angle) + "," + str(
                         max_angle) + "\n cur angle: " + str(cur_angle)
 
@@ -170,6 +170,7 @@ class FaceModel():
         print("prev. X_len " + str(len(X)) + "; prev. y_len " + str(len(y)))
         y_len = len(y)
         t = 0
+
         for state in states:
             target_names = np.append(target_names, state)
 
@@ -184,12 +185,13 @@ class FaceModel():
         # shuffle data:
         indices = np.arange(len(y))
         np.random.RandomState(42).shuffle(indices)
+        X_old = X.copy()
         X, y = X[indices], y[indices]
 
         print("X_len " + str(len(X)) + "; y_len " + str(len(y)) + "; num targets: " + str(len(target_names)))
 
         # X = preprocessing.scale(X)
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1)
 
         # apply pca and find eigenvectors and eigenvalues
         feature_dim = 200
@@ -203,6 +205,14 @@ class FaceModel():
         print(classification_report(y_test, y_pred, target_names=target_names))
         i = 10
         print("Predicted:", target_names[y_pred[i]], " - Correct:", target_names[y_test[i]])
+
+        self.store_training_data(X_train)
+        #for i in range(10):
+        #    cwd = os.getcwd()
+        #    cv_img_train = self.get_cv_face(X_train[i])
+        #    cv2.imwrite(cwd + "/db_" + str(i) + ".jpg", cv_img_train)
+        #for i in range(10):
+        #    cv2.imwrite(cwd + "/tr_" + str(i) + ".jpg", self.get_cv_face(X_old[len(X_old)-1-i]))
 
         self.target_names = target_names.copy()
         self.is_trained = True
@@ -238,6 +248,17 @@ class FaceModel():
                     i += 1
 
         return img_buffer
+
+    def store_training_data(self, X):
+        cwd = os.getcwd()
+        print("saving training images: " + str(cwd))
+        directory = "training_images/db"
+        if os.path.exists(directory):
+            shutil.rmtree(directory)
+        os.makedirs(directory)
+        for i in range(len(X)):
+            cv_img_train = self.get_cv_face(X[i])
+            cv2.imwrite(directory + "/db_" + str(i) + ".jpg", cv_img_train)
 
     def stop_thread(self):
         if self.is_training:
@@ -290,6 +311,11 @@ class FaceModel():
 
         return ratio
 
+    def get_cv_face(self, np_face):
+        [w, h] = self.training_data_dim
+        img = utils.numpyarray_image_to_cv(np_face, w, h)
+        return img
+
 
     def authorize_thread(self):
         self.is_authorizing = True
@@ -314,6 +340,13 @@ class FaceModel():
                 head_pose_detections = self.detect_head_poses(cam_img)
                 self.show_detections(head_pose_detections, cam_img)
 
+                self.res_lock.acquire()
+                try:
+                    self.res_img = cam_img
+                    cv2.rectangle(self.res_img, (2, 2), (20, 20), (255, 0, 0), 2)
+                finally:
+                    self.res_lock.release()
+
                 if len(head_pose_detections):
                     det = head_pose_detections[0]
                     img_cropped = det.cropped_clr_img.copy()
@@ -322,6 +355,7 @@ class FaceModel():
 
                     shape = predictor(cam_img, face)
                     shape = face_utils.shape_to_np(shape)  # convert the landmark to np array
+
 
                     left_eye = shape[left_start:left_end]  # left eye coordinates
                     left_ratio = self.calculate_ratio(left_eye)
@@ -356,6 +390,25 @@ class FaceModel():
                     #         print("Predicted:", y_pred[0]) #, " - Correct:", self.target_names[self.trained_ids["Straight"]])
                     #     else:
                     #         print("failure...")
+                    if self.is_trained:
+                        [w, h] = self.training_data_dim
+                        np_face = self.get_np_face(img_cropped)
+
+                        faces = np.zeros((1, h * w), dtype=np.float32)
+                        faces[0, :] = np_face
+                        cwd = os.getcwd()
+                        cv2.imwrite(cwd + "/test_"  + ".jpg", self.get_cv_face(np_face))
+                        X_test_pca = self.pca.transform(faces)
+                        y_pred = self.classifier.predict(X_test_pca)
+
+                        print(y_pred.shape)
+                        if(y_pred[0] < len(self.target_names)):
+                            self.authorizing_info = str("Predicted:" + self.target_names[y_pred[0]] + " - " + str(y_pred[0])) # + " - Correct:" + self.target_names[self.trained_ids["Straight"]])
+                            print(self.authorizing_info)
+                        else:
+                            self.authorizing_info = str("Prediction failed...")
+                            print(self.authorizing_info)
+
 
             time.sleep(0.2)
 
