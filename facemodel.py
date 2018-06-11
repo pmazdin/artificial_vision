@@ -80,15 +80,19 @@ class FaceModel():
 
     def get_info(self):
         if self.is_training:
+            print("1")
             return self.training_info
 
         if self.is_authorizing:
+            print("2")
             return self.authorizing_info
 
         txt = "Wait for info"
         if self.is_trained:
+            print("3")
             txt = "Model is trained"
         if self.is_authorized:
+            print("4")
             txt = "Authorized"
         return txt
 
@@ -100,7 +104,7 @@ class FaceModel():
             print("is already training!")
 
 
-    def train_model_thread(self, num_image_per_side = 50, save_images=True, load_images=False):
+    def train_model_thread(self, num_image_per_side = 50, save_images=True, load_images=True):
         self.is_training = True
 
         states = ["straight", "left", "right"]
@@ -352,7 +356,7 @@ class FaceModel():
 
         RATIO_THRESHOLD = 0.3  # blink detection
         NB_FRAMES = 3  # number of frames under threshold
-        REQUIRED_NB_BLINKS = 2  # number of detected blinks required
+        REQUIRED_NB_BLINKS = 1  # number of detected blinks required
 
         cnt = 0  # frame counter
         total_nb = 0  # total number of detected blinks
@@ -381,30 +385,6 @@ class FaceModel():
                     det = head_pose_detections[0]
                     img_cropped = det.cropped_clr_img.copy()
 
-                    face = dlib.rectangle(det.x_min, det.y_min, det.x_max, det.y_max)
-
-                    shape = predictor(cam_img, face)
-                    shape = face_utils.shape_to_np(shape)  # convert the landmark to np array
-
-
-                    left_eye = shape[left_start:left_end]  # left eye coordinates
-                    left_ratio = self.calculate_ratio(left_eye)
-
-                    right_eye = shape[right_start:right_end]  # right eye coordinates
-                    right_ratio = self.calculate_ratio(right_eye)
-
-                    total_ratio = (left_ratio + right_ratio) / 2.0  # avg ratio
-
-                    if total_ratio < RATIO_THRESHOLD:
-                        cnt += 1
-                    else:
-                        if cnt >= NB_FRAMES:
-                            total_nb += 1
-                        cnt = 0  # reset the counter
-
-                    if total_nb > REQUIRED_NB_BLINKS:
-                        print("WUHUUU enough blinks")
-
                     if self.is_trained:
                         [w, h] = self.training_data_dim
                         np_face = self.get_np_face(img_cropped)
@@ -416,19 +396,47 @@ class FaceModel():
                         X_test_pca = self.pca.transform(faces)
                         y_pred = self.classifier.predict(X_test_pca)
 
-                        #print(y_pred.shape)
-                        kp2, des2 = self.SIFT_detector.detectAndCompute(img_cropped, None)
-                        [kp1, des1] = self.SIFT_models["straight"][10]
-                        [num, ratio] = compare_ratio(des1,des2)
-                        if num > 30:
-                            self.authorizing_info = str("Predicted ratio: " + str(num) + "/" + str(ratio))
+                        self.authorizing_info = "BLINK SLOWLY"
 
-                        #if(y_pred[0] < len(self.target_names)):
-                        #    self.authorizing_info = str("Predicted:" + self.target_names[y_pred[0]] + " - " + str(y_pred[0])) # + " - Correct:" + self.target_names[self.trained_ids["Straight"]])
-                        #    print(self.authorizing_info)
+                        face = dlib.rectangle(det.x_min, det.y_min, det.x_max, det.y_max)
+
+                        shape = predictor(cam_img, face)
+                        shape = face_utils.shape_to_np(shape)  # convert the landmark to np array
+
+                        left_eye = shape[left_start:left_end]  # left eye coordinates
+                        left_ratio = self.calculate_ratio(left_eye)
+
+                        right_eye = shape[right_start:right_end]  # right eye coordinates
+                        right_ratio = self.calculate_ratio(right_eye)
+
+                        total_ratio = (left_ratio + right_ratio) / 2.0  # avg ratio
+
+                        if total_ratio < RATIO_THRESHOLD:
+                            cnt += 1
+                            print("Blink detected")
                         else:
-                            self.authorizing_info = str("Prediction failed..." + str(num) + "/" + str(ratio))
-                            print(self.authorizing_info)
+                            if cnt >= NB_FRAMES:
+                                total_nb += 1
+                            cnt = 0  # reset the counter
+
+                        if total_nb > REQUIRED_NB_BLINKS:
+                            print("Blink test done")
+
+                            #print(y_pred.shape)
+                            kp2, des2 = self.SIFT_detector.detectAndCompute(img_cropped, None)
+                            [kp1, des1] = self.SIFT_models["straight"][10]
+                            [num, ratio] = compare_ratio(des1,des2)
+                            # if num > 20:
+                            #     self.authorizing_info = str("SIFT RATIO: " + str(num) + "/" + str(ratio))
+                            #
+                            # #if(y_pred[0] < len(self.target_names)):
+                            # #    self.authorizing_info = str("Predicted:" + self.target_names[y_pred[0]] + " - " + str(y_pred[0])) # + " - Correct:" + self.target_names[self.trained_ids["Straight"]])
+                            # #    print(self.authorizing_info)
+                            # else:
+                            #     self.authorizing_info = str("Prediction failed..." + str(num) + "/" + str(ratio))
+                            #     print(self.authorizing_info)
+
+                            self.authorizing_info = str("SIFT SUCCESS: " + "{0:.2f}".format(ratio*100) + "%")
 
             time.sleep(0.2)
 

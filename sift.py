@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 
-def drawMatches(img1, kp1, img2, kp2, matches, knn=False):
+def draw_matches(img1, kp1, img2, kp2, matches, knn=False):
     rows1 = img1.shape[0]
     cols1 = img1.shape[1]
     rows2 = img2.shape[0]
@@ -75,14 +75,14 @@ def compare(filename1, filename2, knn=False):
     if knn:
         matches = bf.knnMatch(des1, des2, 2)
         good_matches = get_good_matches(matches)
-        img3 = drawMatches(img1, kp1, img2, kp2, matches, knn=True)
-        img4 = drawMatches(img1, kp1, img2, kp2, good_matches)
+        img3 = draw_matches(img1, kp1, img2, kp2, matches, knn=True)
+        img4 = draw_matches(img1, kp1, img2, kp2, good_matches)
     else:
         matches = bf.match(des1, des2)
         matches_RL = bf.match(des2, des1)
         good_matches = symetry_test(matches, matches_RL)
-        img3 = drawMatches(img1, kp1, img2, kp2, matches)
-        img4 = drawMatches(img1, kp1, img2, kp2, good_matches)
+        img3 = draw_matches(img1, kp1, img2, kp2, matches)
+        img4 = draw_matches(img1, kp1, img2, kp2, good_matches)
 
         [num, ratio] = compare_ratio(des1, des2)
         print("ratio: " + str(num) + "/" + str(ratio))
