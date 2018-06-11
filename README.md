@@ -32,7 +32,7 @@ Therefore, there is a GUI giving the instructions to follow. There are two diffe
                 
 
 ### From the technical perspective:
-    Area of interest detection
+    - Region of interest (ROI) detection
     - Feature extraction 
     	- PCA and SVM in order to test face recognition when standing straight (many image samples takend and compared within a database)
     	- SIFT to test left and right head orientations and how many features matched among them
