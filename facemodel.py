@@ -2,13 +2,20 @@ import os
 import Queue
 import threading
 import time
+import numpy as np
 import cv2
 import utils
 import os
 import shutil
-
 from gazedetector import *
 
+from sklearn import svm
+from sklearn import datasets
+from sklearn import preprocessing
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report
+from sklearn.decomposition import PCA
+import matplotlib.pyplot as plt
 
 class FaceModel():
     def __init__(self):
@@ -27,6 +34,16 @@ class FaceModel():
         self.GazeD = GazeDetector("./etc/tensorflow/head_pose/roll/cnn_cccdd_30k.tf",
                                   "./etc/tensorflow/head_pose/pitch/cnn_cccdd_30k.tf",
                                   "./etc/tensorflow/head_pose/yaw/cnn_cccdd_30k.tf")
+
+        self.lfw_dataset = datasets.fetch_lfw_people(min_faces_per_person=50)
+        l, h, w = self.lfw_dataset.images.shape
+        self.training_data_dim = [w, h]
+        print("number of training images: " + str(l))
+        print("WxH: " + str(w) + "x" + str(h) + "=" + str(w * h) + " pixels")
+        print("number of persons: " + str(len(self.lfw_dataset.target_names)))
+
+        self.trained_ids = dict()
+
     def set_cam_image(self, img):
         # only add new data if available: triggers working thread!
         if self.in_cam_img_queue.empty():
@@ -61,7 +78,7 @@ class FaceModel():
     def train_model_thread(self, num_image_per_side = 15, save_images=True):
         self.is_training = True
 
-        states = ["straight", "left", "right"]
+        states = ["straight"] #, "left", "right"]
         state_angles = { "straight" : [-10, 10], "left" : [-90, -35], "right" : [35, 90] }
         img_buffer = { "straight" : [], "left" : [], "right" : [] }
 
@@ -121,6 +138,52 @@ class FaceModel():
 
 
             # do the model training
+            X = self.lfw_dataset.data.copy()
+            y = self.lfw_dataset.target.copy()
+            target_names = self.lfw_dataset.target_names.copy()
+
+            print("prev. X_len " + str(len(X)) + "; prev. y_len " + str(len(y)))
+            y_len = len(y)
+            t = 0
+            for state in states:
+                target_names = np.append(target_names, state)
+
+                self.trained_ids[str(state)] = y_len+t
+
+                for img in img_buffer[state]:
+                    resized_img = cv2.resize(img, (self.training_data_dim[0], self.training_data_dim[1]))
+                    np_face = np.asarray(resized_img.flatten(), dtype=np.float32)
+                    np_face /= 255.0 # scale uint8 coded colors from 0.0->1.0
+                    np_face = np_face.reshape((1, len(np_face)))  ## make a row vector
+
+                    X = np.append(X, np_face, axis=0)  ## append to the image vector
+                    y = np.append(y, y_len+t)  ## append to the label vector
+                t += 1
+
+             # shuffle data:
+            indices = np.arange(len(y))
+            np.random.RandomState(42).shuffle(indices)
+            X,y = X[indices], y[indices]
+
+            print("X_len " + str(len(X)) + "; y_len " + str(len(y)) + "; num targets: " + str(len(target_names)))
+
+            # X = preprocessing.scale(X)
+            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
+
+            # apply pca and find eigenvectors and eigenvalues
+            feature_dim = 200
+            pca = PCA(n_components=feature_dim, whiten=True).fit(X_train)
+            X_train_pca = pca.transform(X_train)
+            X_test_pca = pca.transform(X_test)
+            c = svm.SVC()
+
+            c.fit(X_train_pca, y_train)
+            y_pred = c.predict(X_test_pca)
+            print(classification_report(y_test, y_pred, target_names=target_names))
+            i = 10
+            print("Predicted:", target_names[y_pred[i]], " - Correct:", target_names[y_test[i]])
+
+
 
         self.is_trained = True
         print("worker is done...")
