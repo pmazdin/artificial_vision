@@ -11,3 +11,4 @@ dlib
 scipy
 imutils
 opencv-contrib-python
+face_recognition

@@ -22,6 +22,8 @@ import matplotlib.pyplot as plt
 from scipy.spatial import distance as dist
 from imutils import face_utils
 
+import face_recognition
+
 class FaceModel():
     def __init__(self):
         self.in_cam_img_queue = Queue.Queue()
@@ -60,6 +62,8 @@ class FaceModel():
         self.SIFT_models = dict()
         self.SIFT_detector = cv2.xfeatures2d.SIFT_create()
 
+        self.fr_encodings = dict()
+        self.fr_names = []
 
     def set_cam_image(self, img):
         # only add new data if available: triggers working thread!
@@ -80,19 +84,19 @@ class FaceModel():
 
     def get_info(self):
         if self.is_training:
-            print("1")
+            #print("1")
             return self.training_info
 
         if self.is_authorizing:
-            print("2")
+            #print("2")
             return self.authorizing_info
 
         txt = "Wait for info"
         if self.is_trained:
-            print("3")
+            #print("3")
             txt = "Model is trained"
         if self.is_authorized:
-            print("4")
+            #print("4")
             txt = "Authorized"
         return txt
 
@@ -104,7 +108,7 @@ class FaceModel():
             print("is already training!")
 
 
-    def train_model_thread(self, num_image_per_side = 50, save_images=True, load_images=True):
+    def train_model_thread(self, num_image_per_side = 10, save_images=False, load_images=False):
         self.is_training = True
 
         states = ["straight", "left", "right"]
@@ -160,9 +164,7 @@ class FaceModel():
                         det = head_pose_detections[0]
                         cur_angle = det.yaw
                         img_cropped = det.cropped_clr_img
-                    self.training_info = "LOOK " + state
-                        # state + ": " + str(cnt) + "; expected angles: " + str(min_angle) + "," + str(
-                        # max_angle) + "\n cur angle: " + str(cur_angle)
+                    self.training_info = "LOOK " +  state + ": " + str(cnt) + "; expected angles: " + str(min_angle) + "," + str( max_angle) + "\n cur angle: " + str(cur_angle)
 
                     if cur_angle > min_angle and cur_angle < max_angle and img_cropped is not None:
                         cnt += 1
@@ -214,7 +216,8 @@ class FaceModel():
         y_pred = self.classifier.predict(X_test_pca)
         print(classification_report(y_test, y_pred, target_names=target_names))
         i = 10
-        print("Predicted:", target_names[y_pred[i]], " - Correct:", target_names[y_test[i]])
+        if y_test[i] < len(target_names):
+          print("Predicted:", target_names[y_pred[i]], " - Correct:", target_names[y_test[i]])
 
         self.store_training_data(X_train)
         #for i in range(10):
@@ -230,7 +233,7 @@ class FaceModel():
 
         self.extract_SIFT(states, img_buffer, self.SIFT_models)
 
-
+        self.extract_FR(states, img_buffer)
         self.is_trained = True
 
 
@@ -273,6 +276,32 @@ class FaceModel():
             for img in img_buffer[state]:
                 kp1, des1 = self.SIFT_detector.detectAndCompute(img, None)
                 SIFT_models[state].append((kp1, des1))
+
+    def extract_FR(self, states, img_buffer):
+        self.fr_names = states
+        for state in states:
+            img = img_buffer[state][0]
+            self.fr_encodings[state] = face_recognition.face_encodings(img)
+
+
+    def detect_FR(self, states, img):
+        faces_names = []
+        for state in states:
+            face_encodings = face_recognition.face_encodings(img)
+            for face_encoding in face_encodings:
+                # See if the face is a match for the known face(s)
+
+                for state in states:
+                    matches = face_recognition.compare_faces(self.fr_encodings[state], face_encoding)
+                    name = "Unknown"
+
+                    # If a match was found in known_face_encodings, just use the first one.
+                    if True in matches:
+                        first_match_index = matches.index(True)
+                        name = self.fr_names[first_match_index]
+                        faces_names.append(name)
+
+        return faces_names
 
     def store_training_data(self, X):
         cwd = os.getcwd()
@@ -356,7 +385,9 @@ class FaceModel():
 
         RATIO_THRESHOLD = 0.3  # blink detection
         NB_FRAMES = 3  # number of frames under threshold
-        REQUIRED_NB_BLINKS = 1  # number of detected blinks required
+        REQUIRED_NB_BLINKS = 0  # number of detected blinks required
+
+        success_cnt = 0
 
         cnt = 0  # frame counter
         total_nb = 0  # total number of detected blinks
@@ -374,6 +405,7 @@ class FaceModel():
                 head_pose_detections = self.detect_head_poses(cam_img)
                 self.show_detections(head_pose_detections, cam_img)
 
+                self.authorizing_info = "authorizing..."
                 self.res_lock.acquire()
                 try:
                     self.res_img = cam_img
@@ -420,24 +452,38 @@ class FaceModel():
                             cnt = 0  # reset the counter
 
                         if total_nb > REQUIRED_NB_BLINKS:
-                            print("Blink test done")
-
+                            #print("Blink test done")
+                            USE_SIFT = False
+                            USE_RT = True
                             #print(y_pred.shape)
-                            kp2, des2 = self.SIFT_detector.detectAndCompute(img_cropped, None)
-                            [kp1, des1] = self.SIFT_models["straight"][10]
-                            [num, ratio] = compare_ratio(des1,des2)
-                            # if num > 20:
-                            #     self.authorizing_info = str("SIFT RATIO: " + str(num) + "/" + str(ratio))
-                            #
-                            # #if(y_pred[0] < len(self.target_names)):
-                            # #    self.authorizing_info = str("Predicted:" + self.target_names[y_pred[0]] + " - " + str(y_pred[0])) # + " - Correct:" + self.target_names[self.trained_ids["Straight"]])
-                            # #    print(self.authorizing_info)
-                            # else:
-                            #     self.authorizing_info = str("Prediction failed..." + str(num) + "/" + str(ratio))
-                            #     print(self.authorizing_info)
+                            if USE_SIFT:
+                                kp2, des2 = self.SIFT_detector.detectAndCompute(img_cropped, None)
+                                [kp1, des1] = self.SIFT_models["straight"][10]
+                                [num, ratio] = compare_ratio(des1,des2)
+                                if num > 20:
+                                     self.authorizing_info = str("SIFT RATIO: " + str(num) + "/" + str(ratio))
 
-                            self.authorizing_info = str("SIFT SUCCESS: " + "{0:.2f}".format(ratio*100) + "%")
+                                if(y_pred[0] < len(self.target_names)):
+                                    self.authorizing_info = str("Predicted:" + self.target_names[y_pred[0]] + " - " + str(y_pred[0])) # + " - Correct:" + self.target_names[self.trained_ids["Straight"]])
+                                    print(self.authorizing_info)
+                                else:
+                                    self.authorizing_info = str("Prediction failed..." + str(num) + "/" + str(ratio))
+                                    print(self.authorizing_info)
 
-            time.sleep(0.2)
+                            if USE_RT:
+                                face_names = self.detect_FR(["straight"], img_cropped)
+                                if len(face_names):
+                                    self.authorizing_info = "SUCCESS: detected: " + str(face_names) #str("SIFT SUCCESS: " + "{0:.2f}".format(ratio*100) + "%")
+                                    print(self.authorizing_info)
+
+                                    if success_cnt > 20:
+                                        self.is_authorized = True
+                                        self.is_authorizing = False
+                                    success_cnt += 1
+                                else:
+                                    self.authorizing_info = "FAILED!"
+                                    print(self.authorizing_info)
+            #time.sleep(0.2)
 
 
+        print("authorize thread done...")

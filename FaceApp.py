@@ -18,9 +18,9 @@ SMALL_FONT = ("Verdana", 8)
 class FaceApp(tk.Tk):
     def __init__(self, *args, **kwargs):
         self.root = tk.Tk.__init__(self, *args, **kwargs)
-        self.img_w = 700
-        self.img_h = 400
-        self.geometry(str(self.img_w + 60) + "x" + str(self.img_h*2 + 120) + "+300+300")
+        self.img_w = 480
+        self.img_h = 360
+        self.geometry(str(self.img_w + 120) + "x" + str(self.img_h*2 + 120) + "+300+300")
         tk.Tk.wm_title(self, "FaceApp")
         container = tk.Frame(self)
         container.pack(side="top", fill="both", expand=True)
@@ -81,11 +81,11 @@ class StartPage(tk.Frame):
 
         # self.label_cam_txt = tk.Label(self, text="live camera stream", font=SMALL_FONT)
         # self.label_cam_txt.pack(side=tk.TOP, pady=0, padx=10)
-
-        self.label_cam_stream = tk.Label(master=controller)
+        master=controller
+        self.label_cam_stream = tk.Label()
         self.label_cam_stream.pack(side=tk.TOP, pady=5)
 
-        self.label_img_res_txt = tk.Label(self, text="processed image:", font='Helvetica 18 bold')
+        self.label_img_res_txt = tk.Label(self, text="processed image:", font=NORMAL_FONT)
         self.label_img_res_txt.pack(side=tk.TOP,pady=12, padx=10)
 
         self.label_img_res = tk.Label(master=controller)
