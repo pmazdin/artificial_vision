@@ -1,4 +1,5 @@
 import Tkinter as tk
+import tkFileDialog
 import os
 import cv2
 import shutil
@@ -32,11 +33,7 @@ class FaceApp(tk.Tk):
         frame = StartPage(container, self)
         self.frames[StartPage] = frame
         frame.grid(row=0, column=0, sticky="nsew")
-
         self.show_frame(StartPage)
-        self.txt = tk.Text(self)
-        self.txt.pack(fill=tk.BOTH, expand=1)
-
 
     def show_frame(self, cont):
         frame = self.frames[cont]
@@ -47,21 +44,6 @@ class FaceApp(tk.Tk):
         button = tk.Button(filewin, text="Do nothing button")
         button.pack()
         print("do nothing")
-
-    def on_open(self):
-        # https://stackoverflow.com/questions/16429716/opening-file-tkinter
-        ftypes = [('csv files', '*.csv')]
-        dlg = tk.filedialog.Open(self, filetypes = ftypes)
-        fl = dlg.show()
-
-        if fl != '':
-            text = self.read_file(fl)
-            self.txt.insert(tk.END, text)
-
-    def read_file(self, filename):
-        f = open(filename, "r")
-        text = f.read()
-        return text
 
 
 
@@ -124,16 +106,29 @@ class StartPage(tk.Frame):
     def authorize(self):
         print("Authorization chosen!")
 
+
     def load_model(self):
+        # https://stackoverflow.com/questions/16429716/opening-file-tkinter
         print("Load model chosen!")
-        #self.button_load_model['state'] = tk.DISABLED
-        self.button_save_model['state'] = tk.NORMAL
-        self.button_authorize['state'] = tk.NORMAL
+        ftypes = [('model files', '*.model')]
+        dlg = tkFileDialog.Open(self.controller, filetypes = ftypes)
+        fl = dlg.show()
+
+        if fl != '':
+            if self.model.load_model(fl):
+                # self.button_load_model['state'] = tk.DISABLED
+                self.button_save_model['state'] = tk.NORMAL
+                self.button_authorize['state'] = tk.NORMAL
 
     def save_model(self):
-        print("Load model chosen!")
-        self.button_load_model['state'] = tk.DISABLED
-        self.button_authorize['state'] = tk.NORMAL
+        print("save model chosen!")
+        ftypes = [('model files', '*.model')]
+        cwd = os.getcwd()
+        fl = tkFileDialog.asksaveasfilename(initialdir=cwd, title="Select file", filetypes=ftypes)
+        if fl != '':
+            if self.model.save_model(fl) :
+                self.button_load_model['state'] = tk.DISABLED
+                self.button_authorize['state'] = tk.NORMAL
 
     def show_video(self):
         if not self.cap.isOpened():

@@ -122,8 +122,6 @@ class FaceModel():
 
             # do the model training
 
-
-
         self.is_trained = True
         print("worker is done...")
 
@@ -142,7 +140,9 @@ class FaceModel():
         return self.GazeD.detect(cam_img)
 
     def save_model(self, filename):
-        return
+        print("saving model: " + filename)
+        return False
 
     def load_model(self, filename):
-        return
+        print("loading model: " + filename)
+        return False
