@@ -105,6 +105,7 @@ class StartPage(tk.Frame):
 
         self.label_img_res_txt = tk.Label(self, text="processed image:", font=SMALL_FONT)
         self.label_img_res_txt.pack(side=tk.TOP,pady=0, padx=10)
+
         self.label_img_res = tk.Label(master=controller)
         self.label_img_res.pack(side=tk.TOP, pady=5)
 
@@ -157,6 +158,8 @@ class StartPage(tk.Frame):
 
             self.model.set_cam_image(self.img_cam)
             self.img_res = self.model.get_res_image()
+
+            self.label_img_res_txt['text'] = self.model.get_info()
 
             if self.img_res is None:
                 self.img_res = self.img_cam
