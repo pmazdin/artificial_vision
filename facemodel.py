@@ -10,6 +10,7 @@ import shutil
 import dlib
 import pickle
 from gazedetector import *
+from sift import *
 
 from sklearn import svm
 from sklearn import datasets
@@ -56,6 +57,9 @@ class FaceModel():
         self.pca = None
         self.target_names = []
 
+        self.SIFT_models = dict()
+        self.SIFT_detector = cv2.xfeatures2d.SIFT_create()
+
 
     def set_cam_image(self, img):
         # only add new data if available: triggers working thread!
@@ -96,7 +100,7 @@ class FaceModel():
             print("is already training!")
 
 
-    def train_model_thread(self, num_image_per_side = 50, save_images=True, load_images=True):
+    def train_model_thread(self, num_image_per_side = 200, save_images=True, load_images=True):
         self.is_training = True
 
         states = ["straight", "left", "right"]
@@ -216,6 +220,12 @@ class FaceModel():
         #    cv2.imwrite(cwd + "/tr_" + str(i) + ".jpg", self.get_cv_face(X_old[len(X_old)-1-i]))
 
         self.target_names = target_names.copy()
+
+        # extract sift features
+
+        self.extract_SIFT(states, img_buffer, self.SIFT_models)
+
+
         self.is_trained = True
 
 
@@ -249,6 +259,15 @@ class FaceModel():
                     i += 1
 
         return img_buffer
+
+
+    def extract_SIFT(self, states, img_buffer, SIFT_models):
+        print("extracting SIFT models...")
+        for state in states:
+            SIFT_models[state] = []
+            for img in img_buffer[state]:
+                kp1, des1 = self.SIFT_detector.detectAndCompute(img, None)
+                SIFT_models[state].append((kp1, des1))
 
     def store_training_data(self, X):
         cwd = os.getcwd()
@@ -385,7 +404,6 @@ class FaceModel():
                     if total_nb > REQUIRED_NB_BLINKS:
                         print("WUHUUU enough blinks")
 
-
                     if self.is_trained:
                         [w, h] = self.training_data_dim
                         np_face = self.get_np_face(img_cropped)
@@ -397,14 +415,19 @@ class FaceModel():
                         X_test_pca = self.pca.transform(faces)
                         y_pred = self.classifier.predict(X_test_pca)
 
-                        print(y_pred.shape)
-                        if(y_pred[0] < len(self.target_names)):
-                            self.authorizing_info = str("Predicted:" + self.target_names[y_pred[0]] + " - " + str(y_pred[0])) # + " - Correct:" + self.target_names[self.trained_ids["Straight"]])
-                            print(self.authorizing_info)
-                        else:
-                            self.authorizing_info = str("Prediction failed...")
-                            print(self.authorizing_info)
+                        #print(y_pred.shape)
+                        kp2, des2 = self.SIFT_detector.detectAndCompute(img_cropped, None)
+                        [kp1, des1] = self.SIFT_models["straight"][10]
+                        [num, ratio] = compare_ratio(des1,des2)
+                        if num > 30:
+                            self.authorizing_info = str("Predicted ratio: " + str(num) + "/" + str(ratio))
 
+                        #if(y_pred[0] < len(self.target_names)):
+                        #    self.authorizing_info = str("Predicted:" + self.target_names[y_pred[0]] + " - " + str(y_pred[0])) # + " - Correct:" + self.target_names[self.trained_ids["Straight"]])
+                        #    print(self.authorizing_info)
+                        else:
+                            self.authorizing_info = str("Prediction failed..." + str(num) + "/" + str(ratio))
+                            print(self.authorizing_info)
 
             time.sleep(0.2)
 
