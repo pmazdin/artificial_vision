@@ -2,7 +2,7 @@
 
 Authorization via face detection in python using some Machine Learning approaches and image processing
 
-## dependencies
+## Dependencies
 
 ```
 source setup_env.sh
@@ -10,13 +10,13 @@ python FaceApp.py
 ```
 
 
-## description
+## Description
 
 The aim in our project is to give a user a valid face authorization tool. It should be user friendly and intuitive.
 Therefore, there is a GUI giving the instructions to follow. There are two different perspectives:
 
 ### The user's perspective:
-    #### Choose in a GUI between options: 
+    Choose in a GUI between options: 
     	- Train the model
     		- The program will ask the user to move his/her head in a specific way (e.g. straight/up/down/left/right)
     	- Authorize using the trained model
@@ -32,7 +32,7 @@ Therefore, there is a GUI giving the instructions to follow. There are two diffe
                 
 
 ### From the technical perspective:
-    #### Area of interest detection
+    Area of interest detection
     - Feature extraction 
     	- PCA and SVM in order to test face recognition when standing straight (many image samples takend and compared within a database)
     	- SIFT to test left and right head orientations and how many features matched among them
