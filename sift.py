@@ -56,7 +56,7 @@ def compare_ratio(des1, des2):
     matches_RL = bf.match(des2, des1)
     good_matches = symetry_test(matches_LR, matches_RL)
 
-    return [len(good_matches) , len(good_matches)/(0.5*(len(des1) + len(des2)))]
+    return [len(good_matches) , len(good_matches)/(1.0 *   min(len(des1), len(des2))), good_matches]
 
 
 def compare(filename1, filename2, knn=False):

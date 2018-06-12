@@ -98,7 +98,7 @@ class StartPage(tk.Frame):
 
     def train(self):
         print("Train chosen!")
-        self.button_save_model['state'] = tk.NORMAL
+        #self.button_save_model['state'] = tk.NORMAL
 
         self.model.train_model()
         self.button_authorize['state'] = tk.NORMAL
