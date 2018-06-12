@@ -24,8 +24,6 @@ Therefore, there is a GUI giving the instructions to follow. There are two diffe
     		- If yes:
                     - Ask the user to follow given head movements
                         - If passed, authorization successful
-    	- Load the model from the system
-    	- Save current configuration to a system
     	- there is a live stream underneath (test if webcam is working)
     	- there is a stream with some techniqued applied (head pose, orientation, etc.)
 
