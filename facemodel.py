@@ -94,7 +94,7 @@ class FaceModel():
             print("is already training!")
 
 
-    def train_model_thread(self, num_image_per_side = 10, save_images=False, load_images=True):
+    def train_model_thread(self, num_image_per_side = 10, save_images=True, load_images=False):
         self.is_training = True
 
         states = ["straight", "left", "right"]
