@@ -18,7 +18,7 @@ class FRDetector:
 
     def training(self, img_buffer, names):
         for name in names:
-            if self.img_buffer.has_key(name):
+            if img_buffer.has_key(name):
                 if len(img_buffer[name]):
                     self.train(img_buffer[name], name)
 
