@@ -32,10 +32,10 @@ Therefore, there is a GUI giving the instructions to follow. There are two diffe
                 
 
 ### From the technical perspective:
-    - Region of interest (ROI) detection
-    - Feature extraction 
-    	- PCA and SVM in order to test face recognition when standing straight (many image samples takend and compared within a database)
-    	- SIFT to test left and right head orientations and how many features matched among them
+    - Region of interest (ROI) detection (dlib)
+    - Feature extraction strategies 
+        - PCA and SVM in order to test face recognition when standing straight (many image samples takend and compared within a database)
+        - SIFT to test left and right head orientations and how many features matched among them
+        - FR: [face_recognition](https://pypi.org/project/face_recognition/)   tested with [lfw dataset](http://vis-www.cs.umass.edu/lfw/#download)
     - Blink detection (OpenCV)
-    - Head orientation detection (NN)
-
+    - Head orientation detection (deepgaze)
